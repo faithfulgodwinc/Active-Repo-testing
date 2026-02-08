@@ -1,0 +1,27 @@
+{
+    "name": "active-repo",
+    "version": "1.0.0",
+    "description": "Serverless Node.js/TypeScript application for Gemini 3 Hackathon",
+    "main": "dist/index.js",
+    "scripts": {
+        "start": "node dist/index.js",
+        "dev": "ts-node src/index.ts",
+        "build": "tsc",
+        "test": "ts-node src/services/diff.test.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@google/generative-ai": "^0.2.1",
+        "dotenv": "^16.4.1",
+        "express": "^4.18.2",
+        "octokit": "^3.1.2"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.11.16",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}
