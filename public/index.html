@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Repo | Hype Operations</title>
+    <style>
+        :root {
+            --neon-green: #39ff14;
+            --neon-pink: #ff00ff;
+            --dark-bg: #0a0a0a;
+            --terminal-bg: #1a1a1a;
+            --scanline-color: rgba(57, 255, 20, 0.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-green);
+            font-family: 'Courier New', Courier, monospace; // Fallback
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* CRT Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        h1 {
+            text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--neon-pink);
+            padding-bottom: 10px;
+        }
+
+        #status-bar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: var(--neon-pink);
+        }
+
+        #feed {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 50px;
+        }
+
+        .card {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--neon-green);
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+            position: relative;
+            animation: glitch 0.5s ease-out;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .repo-name { color: var(--neon-pink); }
+        .timestamp { font-size: 0.8em; opacity: 0.7; }
+
+        .commit-message {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .ai-section {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            margin-top: 10px;
+            border-left: 3px solid var(--neon-pink);
+        }
+
+        .ai-label {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            color: var(--neon-pink);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            opacity: 0.5;
+            margin-top: 50px;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+        /* Matrix Rain Canvas */
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix"></canvas>
+
+    <h1>Active Repo // Oversight</h1>
+
+    <div id="status-bar">
+        <span>SYSTEM: ONLINE</span>
+        <span>MODE: HYPE_GENERATION</span>
+        <span id="connection-status">CONNECTING...</span>
+    </div>
+
+    <div id="feed">
+        <div class="empty-state">
+            [WAITING FOR INCOMING TRANSMISSIONS...]
+            <br>
+            Push code to trigger operations.
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+
+        // Feed Logic
+        const feed = document.getElementById('feed');
+        const statusEl = document.getElementById('connection-status');
+        let knownIds = new Set();
+
+        async function fetchHypes() {
+            try {
+                const res = await fetch('/api/hypes');
+                if (!res.ok) throw new Error('Network response was not ok');
+                const hypes = await res.json();
+                
+                statusEl.textContent = 'CONNECTED';
+                statusEl.style.color = '#39ff14';
+
+                if (hypes.length > 0 && knownIds.size === 0) {
+                    feed.innerHTML = ''; // Clear empty state
+                }
+
+                hypes.reverse().forEach(hype => { // Process oldest first to append correctly if we flip logic, but actually we want newest top
+                    // Actually, let's just re-render or prepend new ones.
+                    // Simplified: if knownIds doesn't have it, prepend it.
+                    if (!knownIds.has(hype.id)) {
+                        knownIds.add(hype.id);
+                        const card = createCard(hype);
+                        feed.prepend(card);
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = 'OFFLINE';
+                statusEl.style.color = 'red';
+            }
+        }
+
+        function createCard(hype) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div class="card-header">
+                    <span class="repo-name">${hype.repo}</span>
+                    <span class="timestamp">${new Date(hype.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <div class="commit-message">Step: ${hype.message}</div>
+                <div class="ai-section">
+                    <span class="ai-label">Social Protocol</span>
+                    <div>${hype.social_post}</div>
+                </div>
+                <div class="ai-section" style="border-left-color: #0ff;">
+                    <span class="ai-label">Video Queue</span>
+                    <div>[GENERATING VISUALS...]</div>
+                </div>
+            `;
+            return div;
+        }
+
+        // Poll every 3 seconds
+        setInterval(fetchHypes, 3000);
+        fetchHypes();
+
+    </script>
+</body>
+</html>

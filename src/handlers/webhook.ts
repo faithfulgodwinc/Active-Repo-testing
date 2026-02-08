@@ -82,13 +82,26 @@ export class WebhookHandler {
                 commit: head_commit.id
             });
 
+            // Phase 5: Dashboard Update
+            const hype = {
+                id: head_commit.id,
+                repo: repository.full_name,
+                message: head_commit.message || 'No commit message',
+                timestamp: new Date().toISOString(),
+                social_post: aiContent.social_post,
+                documentation: aiContent.documentation
+            };
+            const { HypeStore } = require('../services/store'); // Lazy load to avoid circular deps if any
+            HypeStore.getInstance().add(hype);
+
             res.status(200).json({
                 message: 'Processed successfully',
                 diffLength: formattedDiff.length,
                 fileCount: filteredDiffs.length,
                 actions: {
                     readme_updated: true,
-                    video_queued: true
+                    video_queued: true,
+                    dashboard_updated: true
                 },
                 aiContent: {
                     social_post: aiContent.social_post,
